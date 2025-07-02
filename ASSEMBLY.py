@@ -1,10 +1,6 @@
 # Although the code here could be shortened by many lines using functions and methods
 # i did not do this as i am lazy and tired. 
 #
-# the entire point of this program was to help myself understand the AQA assembly language
-# however ironically the making of this helped me understand it more than the use of 
-# it ever will D:
-#
 # on program exit any memory locations will be saved and overwritten in a file called "memory.txt"
 # and are able to be loaded from in a new program
 #
