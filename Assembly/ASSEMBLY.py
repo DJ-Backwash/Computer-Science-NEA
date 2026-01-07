@@ -10,7 +10,7 @@
 #
 #   OUT:
 #       this will add whatever you give it to the output log, if multiple things are 
-#       added they will placed in a list.
+#       added they will placed in a list. * redundant *
 #
 #   PRT:
 #       this will immediately output whatever is fed into it when the line is read and 
