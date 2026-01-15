@@ -45,9 +45,11 @@ input_frame.pack(side="left")
 # Register Table
 register_frame = ttk.Frame(master=window)
 
+# UNFINISHED - COME BACK TO THIS JOSH!!!!!
 for i in range(0, 13):
     b = ttk.Label(register_frame, text="R{}".format(i), style="style1.TLabel")
     b.pack(side="top", pady=10)
 register_frame.pack(side="left", anchor="ne", pady=25, padx=10)
+
 
 window.mainloop()
