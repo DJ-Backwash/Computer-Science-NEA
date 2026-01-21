@@ -1,7 +1,0 @@
-  MOV R0 #5
-goon:
-OUT R0
-SUB R0 R0 #1
-CMP R0 #0
-BNE goon
-HALT
