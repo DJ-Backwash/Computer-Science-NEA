@@ -69,9 +69,16 @@ def check_halt():
 
 # Autosave and run code
 def Run(x = 0):
+    checkspace()
+    if x == 1:
+        global line, lastline
+        text_editor.insert("0.0", " ")
+        line = 0
+        lastline = 0
     save_to_file()
     ASM.refresh_reg()
     draw_registers()
+        
     if check_halt():
         console_out(f"Running {current_file_path}...\n")
         ASM.run_code(sys.modules["__main__"], current_file_path, x)
@@ -91,14 +98,20 @@ def New():
 
 RunLBL = partial(Run, x = 1)
 
-def Step(): # Currently broken, lines wont highlight
+def Step(): # Lines work.
+    global line, lastline
+    lastline = line + 1
     line = ASM.execute(sys.modules["__main__"])
+    text_editor.delete(f"{lastline}.0")
     if line != "HALT":
-        text_editor.tag_add("CurrentLine", f"{line+1}.0", f"{line+1}.0 lineend")
-        console_out(line+1)
+        #text_editor.tag_add("CurrentLine", f"{line+1}.0", f"{line+1}.0 lineend")
+        text_editor.insert(f"{line+1}.0", " ")
     else:
         console_out(f"HALT reached", "Success")
 
+def checkspace(): # Method to check for spaces at the start of lines (to clear from my indentation)
+    pass
+    # use text_editor.index("end")
 
 # Add text to console
 def console_out(text, tag = "Default"):

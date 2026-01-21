@@ -48,7 +48,7 @@ def run_code(FrontEnd, filename = "mycode.txt", mode = 0): # name of the file co
             print("Please write your code in 'mycode.txt'")
 
     #variable initialisation
-    print_log = []
+    print_log = None
     read_head = 0
     cmp = []
 
@@ -76,7 +76,7 @@ def run_code(FrontEnd, filename = "mycode.txt", mode = 0): # name of the file co
         FrontEnd.console_out(f"HALT reached", "Success")
 
 def execute(FrontEnd):
-    global contents, print_log, read_head, cmp, registers, memory, labels, looping
+    global line, contents, print_log, read_head, cmp, registers, memory, labels, looping
 
     del_cmp = True # this line is explained lower
     
@@ -89,7 +89,8 @@ def execute(FrontEnd):
     match parts[0]:
         case "OUT": # Rn
             n1 = int(registers[parts[1]])
-            print_log.append(n1)
+            #print_log.append(n1)
+            print_log = n1
 
         case "MOV": # Rd <operand2>
             if parts[2][0] == "#": # instant addressing
@@ -253,6 +254,7 @@ def execute(FrontEnd):
         f.write(str(memory))
     FrontEnd.draw_registers()
 
-    if print_log != []:
+    if print_log != None:
         FrontEnd.console_out(print_log, "Out")
+        print_log = None
     return read_head
