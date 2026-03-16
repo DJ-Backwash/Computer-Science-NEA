@@ -70,12 +70,12 @@ def check_halt():
 # Autosave and run code
 def Run(x = 0):
     checkspace()
+    save_to_file()
     if x == 1:
         global line, lastline
         text_editor.insert("0.0", " ")
         line = 0
         lastline = 0
-    save_to_file()
     ASM.refresh_reg()
     draw_registers()
         
