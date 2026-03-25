@@ -73,7 +73,7 @@ def Run(x = 0):
     save_to_file()
     if x == 1:
         global line, lastline
-        text_editor.insert("0.0", " ")
+        text_editor.insert("0.0", " ") # insert first space on line indicator.
         line = 0
         lastline = 0
     ASM.refresh_reg()
@@ -104,14 +104,16 @@ def Step(): # Lines work.
     line = ASM.execute(sys.modules["__main__"])
     text_editor.delete(f"{lastline}.0")
     if line != "HALT":
-        #text_editor.tag_add("CurrentLine", f"{line+1}.0", f"{line+1}.0 lineend")
+        #text_editor.tag_add("CurrentLine", f"{int(line)+1}.0", f"{int(line)+1}.0 lineend")
         text_editor.insert(f"{line+1}.0", " ")
     else:
         console_out(f"HALT reached", "Success")
 
 def checkspace(): # Method to check for spaces at the start of lines (to clear from my indentation)
-    pass
-    # use text_editor.index("end")
+    for i in range(1, int(text_editor.index("end").split(".")[0]) + 1):
+        if text_editor.get(f"{i}.0", f"{i}.0 lineend").startswith(" "):
+            text_editor.delete(f"{i}.0")
+            i = i-1 # if one space is deleted, the next line moves up, so we need to check the same line number again in case there are multiple spaces.
 
 # Add text to console
 def console_out(text, tag = "Default"):
