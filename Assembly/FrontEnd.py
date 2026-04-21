@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
-import BackEnd
 import ASSEMBLY as ASM
 from functools import partial
 import sys
@@ -71,17 +70,19 @@ def check_halt():
 def Run(x = 0):
     checkspace()
     save_to_file()
+    global line, lastline
     if x == 1:
-        global line, lastline
         text_editor.insert("0.0", " ") # insert first space on line indicator.
         line = 0
         lastline = 0
     ASM.refresh_reg()
     draw_registers()
+    update_memory()
         
     if check_halt():
         console_out(f"Running {current_file_path}...\n")
         ASM.run_code(sys.modules["__main__"], current_file_path, x)
+        update_memory()
     else:
         console_out("Error: No 'HALT' at end of program.", "Error")
 
@@ -100,9 +101,10 @@ RunLBL = partial(Run, x = 1)
 
 def Step(): # Lines work.
     global line, lastline
-    lastline = line + 1
+    lastline = int(line) + 1
     line = ASM.execute(sys.modules["__main__"])
     text_editor.delete(f"{lastline}.0")
+    update_memory()
     if line != "HALT":
         #text_editor.tag_add("CurrentLine", f"{int(line)+1}.0", f"{int(line)+1}.0 lineend")
         text_editor.insert(f"{line+1}.0", " ")
@@ -115,6 +117,14 @@ def checkspace(): # Method to check for spaces at the start of lines (to clear f
             text_editor.delete(f"{i}.0")
             i = i-1 # if one space is deleted, the next line moves up, so we need to check the same line number again in case there are multiple spaces.
 
+def initMemory():
+    memoryDict = {}
+    for i in range(0, 10):
+        for j in range(0, 11):
+                memoryDict[f"{10*i+j+100}"] = 0
+    with open("memory.txt", "w") as f:
+        f.write(str(memoryDict))
+initMemory()
 # Add text to console
 def console_out(text, tag = "Default"):
     text_console.insert("end", f"{text}\n", tag)
@@ -128,6 +138,7 @@ window.geometry("1920x1008") #standard 1080p monitor without windows taskbar (40
 style = ttk.Style()
 style.configure("style1.TButton", font=("Fixedsys", 20, "bold"))
 style.configure("style1.TLabel", font=("Fixedsys", 20, "bold"))
+style.configure("style2.TLabel", font=("Fixedsys", 5))
 
 # Buttons and Frames
 button_frame = ttk.Frame(master=window)
@@ -164,7 +175,7 @@ console_frame = ttk.Frame(master=input_frame)
 text_console = tk.Text(master=console_frame, width=50, height=55)
 console_scroll = tk.Scrollbar(master=console_frame)
 
-# Packing Input and Console
+#  Packing Input and Console
 
 # Scroll Editor
 editor_scroll.pack(side=tk.RIGHT, fill=tk.Y)
@@ -179,7 +190,6 @@ console_scroll.config(command=text_console.yview)
 text_console.config(yscrollcommand=console_scroll.set)
 
 # Console Tags
-
 text_console.tag_config("Default")
 text_console.tag_config("CurrentLine", background="black", foreground="white")
 text_console.tag_config("Error", foreground="red")
@@ -218,7 +228,7 @@ def draw_registers():
         b = ttk.Label(reg_row, text=f"{"R" + str(i):>3} |", style="style1.TLabel")
         b.pack(side="left")
         a.pack(side="left")
-        reg_row.pack(side="top", pady=10)
+        reg_row.pack(side="top", pady=1)
 
     cmp_frame = tk.Frame(register_frame, width=200, height=100, bd=3, relief=tk.SUNKEN)
     cmp_statusa = ttk.Label(cmp_frame, text="N/A ", style="style1.TLabel")
@@ -226,12 +236,69 @@ def draw_registers():
     cmp_statusb.pack(side="left")
     cmp_statusa.pack(side="left")
     
+    cmp_statusa.config(text=f"{ASM.get_cmp()}")
+    
     cmp_frame.pack(side="top", pady=40)
 
 draw_registers()
 register_frame.pack(side="left", anchor="ne", pady=25, padx=10)
 
+memory_frame = ttk.Frame(master=window)
+# A subclass of the tkinter "frame" containing 2 labels, one is used to tell the user what location its reffering to and the other shows the value
+class memoryLocation(tk.Frame):
+    def __init__(self, location, value, masterWindow):
+        super().__init__(master=masterWindow, relief=tk.SUNKEN, bd=3)
+        self.location = location
+        self.value = value
+
+        # creating sub-labels
+        self.locationLabel = ttk.Label(self, text=f"{location}:", style="style2.TLabel")
+        self.valueLabel = ttk.Label(self, text=f"{value}", style="style2.TLabel")
+
+    def pack_all(self):
+        self.locationLabel.pack(side="left", anchor="ne", pady=1, padx=1)
+        self.valueLabel.pack(side="left", anchor="ne", pady=1, padx=1)
+        self.pack(pady=10, padx=0)
+    def updateValue(self, x):
+        self.value = x
+        self.valueLabel.config(text=f"{x}")
+
+    def getLocation(self):
+        return self.location
+
+memoryArray = []
+def draw_memory():
+    with open("memory.txt", "r") as f:
+        memoryReg = eval(f.read())
+    for i in range(0, 10):
+            row = []
+            rowLabel = ttk.Label(memory_frame)
+            for j in range(0, 11):
+                #deduces current memory location (100-200)
+                currentLocation = 10*i+j+100
+                label = memoryLocation(f"{currentLocation}", f"{memoryReg[f"{currentLocation}"]}", rowLabel)
+                label.pack_all()
+                row.append(label)
+            rowLabel.pack(side="left", anchor="ne", pady=1, padx=1)
+            memoryArray.append(row)
+
+def update_memory(reset = False):
+    try:
+        with open("memory.txt", "r") as f:
+            memoryReg = eval(f.read())
+        for i in memoryArray:
+            for j in i:
+                location_key = str(j.getLocation())
+                if reset == True:
+                    j.updateValue(0)
+                elif location_key in memoryReg:
+                    j.updateValue(memoryReg[location_key])
+    except Exception as e:
+        console_out(f"Error updating memory: {str(e)}", "Error")
+
+draw_memory()
+memory_frame.pack(side="left", anchor="ne", pady=25, padx=10)
+
 window.mainloop()
+#Runs on program exit.
 ASM.refresh_reg()
-with open("memory.txt", "w") as f:
-        f.write("{}")

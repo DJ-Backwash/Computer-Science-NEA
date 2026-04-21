@@ -65,8 +65,9 @@ def run_code(FrontEnd, filename = "mycode.txt", mode = 0): # name of the file co
     #build label dictionary
     labels = {}
     for i in range(len(contents)):
-        if contents[i][-1] == ":":
-            labels[contents[i][:-1]] = i
+        if contents[i] != "":
+            if contents[i][-1] == ":":
+                labels[contents[i][:-1]] = i
 
     #main sequence
     if mode == 0:
@@ -75,7 +76,10 @@ def run_code(FrontEnd, filename = "mycode.txt", mode = 0): # name of the file co
             looping = execute(FrontEnd)
         FrontEnd.console_out(f"HALT reached", "Success")
 
+
+
 def execute(FrontEnd):
+
     global line, contents, print_log, read_head, cmp, registers, memory, labels, looping
 
     del_cmp = True # this line is explained lower
@@ -90,102 +94,138 @@ def execute(FrontEnd):
         case "OUT": # Rn
             n1 = int(registers[parts[1]])
             #print_log.append(n1)
-            print_log = n1
+            print_log = [n1, "Out"]
 
         case "MOV": # Rd <operand2>
-            if parts[2][0] == "#": # instant addressing
-                n1 = int(parts[2][1:])
+            try:
+                if parts[2][0] == "#": # instant addressing
+                    n1 = int(parts[2][1:])
 
-            else: # direct addressing
-                n1 = registers[parts[2]]
+                else: # direct addressing
+                    n1 = registers[parts[2]]
 
-            registers[parts[1]] = int(n1)
+                registers[parts[1]] = int(n1)
+
+            except: # Error check
+                print_log = [f"Syntax Error on line {read_head+1}", "Error"]
         
         case "ADD": # Rd Rn <operand2>
-            n1 = registers[parts[2]]
+            try:
+                n1 = registers[parts[2]]
 
-            if parts[3][0] == "#": # instant addressing
-                n2 = int(parts[3][1:])
+                if parts[3][0] == "#": # instant addressing
+                    n2 = int(parts[3][1:])
 
-            else: # direct addressing
-                n2 = registers[parts[3]]
-            
-            registers[parts[1]] = n1 + n2
+                else: # direct addressing
+                    n2 = registers[parts[3]]
+                
+                registers[parts[1]] = n1 + n2
+
+            except: # Error check
+                print_log = [f"Syntax Error on line {read_head+1}", "Error"]
 
         case "SUB": # Rd Rn <operand2>
-            n1 = registers[parts[2]]
+            try:
+                n1 = registers[parts[2]]
 
-            if parts[3][0] == "#": # instant addressing
-                n2 = int(parts[3][1:])
+                if parts[3][0] == "#": # instant addressing
+                    n2 = int(parts[3][1:])
 
-            else: # direct addressing
-                n2 = registers[parts[3]]
-            
-            registers[parts[1]] = n1 - n2
+                else: # direct addressing
+                    n2 = registers[parts[3]]
+                
+                registers[parts[1]] = n1 - n2
+
+            except: # Error check
+                print_log = [f"Syntax Error on line {read_head+1}", "Error"]
 
         case "LSL": # Rd Rn <operand2>
-            n1 = registers[parts[2]]
+            try:
+                n1 = registers[parts[2]]
 
-            if parts[3][0] == "#": # instant addressing
-                n2 = int(parts[3][1:])
+                if parts[3][0] == "#": # instant addressing
+                    n2 = int(parts[3][1:])
 
-            else: # direct addressing
-                n2 = registers[parts[3]]
+                else: # direct addressing
+                    n2 = registers[parts[3]]
+                
+                registers[parts[1]] = n1 << n2
             
-            registers[parts[1]] = n1 << n2
+            except: # Error check
+                print_log = [f"Syntax Error on line {read_head+1}", "Error"]
 
         case "LSR": # Rd Rn <operand2>
-            n1 = registers[parts[2]]
+            try:
+                n1 = registers[parts[2]]
 
-            if parts[3][0] == "#": # instant addressing
-                n2 = int(parts[3][1:])
+                if parts[3][0] == "#": # instant addressing
+                    n2 = int(parts[3][1:])
 
-            else: # direct addressing
-                n2 = registers[parts[3]]
+                else: # direct addressing
+                    n2 = registers[parts[3]]
+                
+                registers[parts[1]] = n1 >> n2
             
-            registers[parts[1]] = n1 >> n2
+            except: # Error check
+                print_log = [f"Syntax Error on line {read_head+1}", "Error"]
 
         case "AND": # Rd Rn <operand2>
-            n1 = bin(registers[parts[2]])[-1]
+            try:
+                n1 = bin(registers[parts[2]])[-1]
 
-            if parts[3][0] == "#": # instant addressing
-                n2 = int(parts[3][-1])
+                if parts[3][0] == "#": # instant addressing
+                    n2 = int(parts[3][-1])
 
-            else: # direct addressing
-                n2 = bin(registers[parts[3]])[-1]
-            
-            registers[parts[1]] = n1 and n2
+                else: # direct addressing
+                    n2 = bin(registers[parts[3]])[-1]
+                
+                registers[parts[1]] = n1 and n2
+
+            except: # Error check
+                print_log = [f"Syntax Error on line {read_head+1}", "Error"]
 
         case "ORR": # Rd Rn <operand2>
-            n1 = bin(registers[parts[2]])[-1]
+            try:
+                n1 = bin(registers[parts[2]])[-1]
 
-            if parts[3][0] == "#": # instant addressing
-                n2 = int(parts[3][-1])
+                if parts[3][0] == "#": # instant addressing
+                    n2 = int(parts[3][-1])
 
-            else: # direct addressing
-                n2 = bin(registers[parts[3]])[-1]
-            
-            registers[parts[1]] = n1 or n2
+                else: # direct addressing
+                    n2 = bin(registers[parts[3]])[-1]
+                
+                registers[parts[1]] = n1 or n2
+
+            except: # Error check
+                print_log = [f"Syntax Error on line {read_head+1}", "Error"]
 
         case "EOR": # Rd Rn <operand2>
-            n1 = bin(registers[parts[2]])[-1]
+            try:
+                n1 = bin(registers[parts[2]])[-1]
 
-            if parts[3][0] == "#": # instant addressing
-                n2 = int(parts[3][-1])
+                if parts[3][0] == "#": # instant addressing
+                    n2 = int(parts[3][-1])
 
-            else: # direct addressing
-                n2 = bin(registers[parts[3]])[-1]
-            
-            registers[parts[1]] = n1 != n2
+                else: # direct addressing
+                    n2 = bin(registers[parts[3]])[-1]
+                
+                registers[parts[1]] = n1 != n2
+
+            except: # Error check
+                print_log = [f"Syntax Error on line {read_head+1}", "Error"]
 
         case "MVN": # Rd <operand2>
-            if parts[2][0] == "#": # instant addressing
-                n1 = int(parts[2][-1])
+            try:
+                if parts[2][0] == "#": # instant addressing
+                    n1 = int(parts[2][-1])
 
-            else: # direct addressing
-                n1 = bin(registers[parts[2]])[-1]
-            
-            registers[parts[1]] = not n1
+                else: # direct addressing
+                    n1 = bin(registers[parts[2]])[-1]
+                
+                registers[parts[1]] = not n1
+
+            except: # Error check
+                print_log = [f"Syntax Error on line {read_head+1}", "Error"]
 
         case "PRT": # <operand>; intended for bugfixing, final outputs should use "OUT"
             if parts[1][0] == "#": # instant addressing
@@ -199,40 +239,62 @@ def execute(FrontEnd):
             read_head = labels[parts[1]]
 
         case "CMP": # Rn <operand2>
-            del_cmp = False
-            cmp.append(registers[parts[1]])
+            try:
+                del_cmp = False
+                cmp.append(registers[parts[1]])
 
-            if parts[2][0] == "#": # instant addressing
-                cmp.append(int(parts[2][1:]))
+                if parts[2][0] == "#": # instant addressing
+                    cmp.append(int(parts[2][1:]))
 
-            else: # direct addressing
-                cmp.append(registers[parts[2]])
+                else: # direct addressing
+                    cmp.append(registers[parts[2]])
+
+            except: # Error check
+                print_log = [f"Syntax Error on line {read_head+1}", "Error"]
 
         case "BEQ": # <label>
-            del_cmp = False
-            if cmp[0] == cmp[1]:
-                read_head = labels[parts[1]]
+            try:
+                del_cmp = False
+                if cmp[0] == cmp[1]:
+                    read_head = labels[parts[1]]
+            except: # Error check
+                print_log = [f"Syntax Error on line {read_head+1}", "Error"]
 
         case "BNE": # <label>
-            del_cmp = False
-            if cmp[0] != cmp[1]:
-                read_head = labels[parts[1]]
+            try:
+                del_cmp = False
+                if cmp[0] != cmp[1]:
+                    read_head = labels[parts[1]]
+            except: # Error check
+                print_log = [f"Syntax Error on line {read_head+1}", "Error"]
 
         case "BLT": # <label>
-            del_cmp = False
-            if cmp[0] < cmp[1]:
-                read_head = labels[parts[1]]
+            try:
+                del_cmp = False
+                if cmp[0] < cmp[1]:
+                    read_head = labels[parts[1]]
+            except: # Error check
+                print_log = [f"Syntax Error on line {read_head+1}", "Error"]
 
         case "BGT": # <label>
-            del_cmp = False
-            if cmp[0] < cmp[1]:
-                read_head = labels[parts[1]]
+            try:
+                del_cmp = False
+                if cmp[0] < cmp[1]:
+                    read_head = labels[parts[1]]
+            except: # Error check
+                print_log = [f"Syntax Error on line {read_head+1}", "Error"]
 
         case "STR": # Rd <memory ref>
-            memory[parts[2]] = registers[parts[1]]
+            try:
+                memory[parts[2]] = registers[parts[1]]
+            except: # Error check
+                print_log = [f"Syntax Error on line {read_head+1}", "Error"]
 
         case "LDR": # Rd <memory ref>
-            registers[parts[1]] = memory[parts[2]]
+            try:
+                registers[parts[1]] = memory[parts[2]]
+            except: # Error check
+                print_log = [f"Syntax Error on line {read_head+1}", "Error"]
             
         case "HALT": # Stop!!!
             return "HALT"
@@ -255,6 +317,13 @@ def execute(FrontEnd):
     FrontEnd.draw_registers()
 
     if print_log != None:
-        FrontEnd.console_out(print_log, "Out")
+        FrontEnd.console_out(print_log[0], f"{print_log[1]}")
         print_log = None
     return read_head
+
+def get_cmp():
+    global cmp
+    try:
+        return cmp
+    except:
+        return "N/A"
